@@ -1,9 +1,13 @@
 "use client";
 
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import ScrollInfo from '@/components/landing/ScrollInfo';
 
-export default function LandingPage({ setShowStory }: { setShowStory: (show: boolean) => void }) {
+export default function LandingPage() {
+    const [showStory, setShowStory] = useState(false);
+
     return (
         <>
             <nav className="absolute top-0 left-0 w-full p-4 z-10 flex justify-between items-center">
@@ -23,6 +27,7 @@ export default function LandingPage({ setShowStory }: { setShowStory: (show: boo
                     Learn about Terra
                 </Button>
             </div>
+            {showStory && <ScrollInfo story={showStory} setStory={setShowStory} />}
         </>
     );
 }
