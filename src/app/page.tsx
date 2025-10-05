@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from 'react';
-import dynamic from 'next/dynamic';
 import type { LatLng } from 'leaflet';
 import AirQualityReport from '@/components/map/air-quality-report';
 import MapView from '@/components/map/map-view';
