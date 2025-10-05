@@ -1,12 +1,8 @@
 "use client";
 import React, { Suspense } from "react";
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
+import Scene from '@/components/landing/Scene';
 import { Skeleton } from "@/components/ui/skeleton";
-
-const Scene = dynamic(() => import('@/components/landing/Scene'), {
-  ssr: false,
-});
 
 
 export default function Home() {
