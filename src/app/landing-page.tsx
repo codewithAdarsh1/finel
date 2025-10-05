@@ -23,7 +23,11 @@ export default function LandingPage() {
                 <p className="mt-4 text-lg text-white/80">
                     Get real-time environmental data at your fingertips. Make informed decisions for a healthier planet.
                 </p>
-                <Button onClick={() => setShowStory(true)} className="mt-6" variant="outline">
+                <Button 
+                    onClick={() => setShowStory(true)} 
+                    className="mt-6 bg-transparent border-white/50 text-white hover:bg-white/10 hover:text-white" 
+                    variant="outline"
+                >
                     Learn about Terra
                 </Button>
             </div>
