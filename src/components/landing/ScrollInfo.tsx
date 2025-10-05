@@ -189,8 +189,8 @@ const ScrollInfo = ({story, setStory}: {story: boolean, setStory: (story: boolea
                         { title: "Water Resources & Drought", description: "Snow cover and land‑surface temperature improve runoff and drought monitoring." },
                         { title: "Ocean Health & Fisheries", description: "Ocean color maps phytoplankton and harmful algal blooms." },
                         { title: "Urban Planning & Heat", description: "ASTER thermal maps pinpoint urban heat islands for cooling strategies." },
-                        { title_hidden: "Hazards & Infrastructure", description: "Stereo/thermal imagery supports landslide risk, lava flow, and damage assessment." },
-                        { title_hidden: "Open Data & Policy", description: "Free global datasets empower researchers, support national reporting, and calibrate newer satellites." }
+                        { title: "Hazards & Infrastructure", description: "Stereo/thermal imagery supports landslide risk, lava flow, and damage assessment." },
+                        { title: "Open Data & Policy", description: "Free global datasets empower researchers, support national reporting, and calibrate newer satellites." }
                     ].map((card, index) => (
                          <div key={index} className="group border border-white/20 rounded-lg p-5 transition-all duration-300 hover:bg-primary/90 hover:border-primary cursor-pointer h-fit overflow-hidden">
                             <h2 className="text-3xl font-bold">{card.title}</h2>
@@ -208,3 +208,5 @@ const ScrollInfo = ({story, setStory}: {story: boolean, setStory: (story: boolea
 };
 
 export default ScrollInfo;
+
+    
