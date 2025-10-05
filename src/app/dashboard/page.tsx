@@ -1,9 +1,17 @@
 "use client";
 
 import React, { useState } from "react";
+import dynamic from 'next/dynamic';
 import type { LatLng } from "leaflet";
 import AirQualityReport from "@/components/map/air-quality-report";
-import MapView from '@/components/map/map-view';
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Dynamically import the MapView component with SSR disabled
+const MapView = dynamic(() => import('@/components/map/map-view'), {
+  ssr: false,
+  loading: () => <Skeleton className="h-full w-full" />,
+});
+
 
 export default function DashboardPage() {
   const [markerPosition, setMarkerPosition] = useState<LatLng | null>(null);
