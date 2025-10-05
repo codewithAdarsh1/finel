@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import type { LatLng } from 'leaflet';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Leaf, Shield, MapPin, Smile, Frown, Meh, Angry, Annoyed } from 'lucide-react';
 
@@ -34,11 +34,11 @@ type InterpretedData = {
 };
 
 const aqiInfo: { [key: number]: Omit<InterpretedData, 'aqi' | 'components'> } = {
-  1: { level: "Good", description: "The air is fresh and safe to breathe.", measures: "Great day for outdoor activities!", icon: <Smile />, colorClass: "text-green-500" },
-  2: { level: "Fair", description: "Air quality is acceptable.", measures: "Sensitive individuals may experience minor respiratory symptoms.", icon: <Meh />, colorClass: "text-yellow-500" },
-  3: { level: "Moderate", description: "Air quality may affect sensitive groups.", measures: "Children, elderly, or people with respiratory issues should limit heavy outdoor exertion.", icon: <Frown />, colorClass: "text-orange-500" },
-  4: { level: "Poor", description: "Pollution may cause health effects.", measures: "Everyone may begin to experience health effects; sensitive groups may experience more serious health effects.", icon: <Angry />, colorClass: "text-red-500" },
-  5: { level: "Very Poor", description: "Health alert: everyone may experience more serious health effects.", measures: "Avoid all outdoor exertion. Remain indoors and keep activity levels low.", icon: <Annoyed />, colorClass: "text-purple-700" }
+  1: { level: "Good", description: "The air is fresh and safe to breathe.", measures: "Great day for outdoor activities! 🌞", icon: <Smile />, colorClass: "text-green-500" },
+  2: { level: "Fair", description: "Air quality is acceptable.", measures: "Sensitive individuals may experience minor respiratory symptoms. 🌤️", icon: <Meh />, colorClass: "text-yellow-500" },
+  3: { level: "Moderate", description: "Air quality may affect sensitive groups.", measures: "Children, elderly, or people with respiratory issues should limit heavy outdoor exertion. 🌫️", icon: <Frown />, colorClass: "text-orange-500" },
+  4: { level: "Poor", description: "Pollution may cause health effects.", measures: "Everyone may begin to experience health effects; sensitive groups may experience more serious health effects. 😷", icon: <Angry />, colorClass: "text-red-500" },
+  5: { level: "Very Poor", description: "Health alert: everyone may experience more serious health effects.", measures: "Avoid all outdoor exertion. Remain indoors and keep activity levels low. ☠️", icon: <Annoyed />, colorClass: "text-purple-700" }
 };
 
 const interpretAirQuality = (data: AirQualityData): InterpretedData | null => {

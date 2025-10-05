@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, X, Loader2, LocateFixed, MapPin } from 'lucide-react';
+import { Search, X, Loader2, LocateFixed } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -69,7 +69,6 @@ const MapViewComponent = React.memo(function MapViewComponent({ markerPosition, 
             />
             <ClickableMap setMarker={(latlng) => {
                 setMarkerPosition(latlng);
-                // Clear search query when clicking on the map
                 const q = query.trim();
                 if (q !== "Your Location" && q !== "") {
                     setQuery("");
@@ -135,11 +134,43 @@ export default function MapView({ markerPosition, setMarkerPosition }: { markerP
     setMarkerPosition(new LatLng(lat, lng));
   };
 
+  const handleSearch = async () => {
+    try {
+        setLoadingSearch(true);
+        let place = selectedPlace || (suggestions.length > 0 ? suggestions[0] : null);
+        if (!place && query.trim()) {
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query.trim())}&limit=1&addressdetails=1`);
+            const data = await res.json();
+            if (data?.length) {
+                place = data[0];
+            }
+        }
+
+        if (!place) {
+            toast({ variant: 'destructive', title: "Not Found", description: "No results found for your query." });
+            return;
+        }
+
+        const lat = parseFloat(place.lat);
+        const lng = parseFloat(place.lon);
+        setMarkerPosition(new LatLng(lat, lng));
+        setSelectedPlace(place);
+        setQuery(place.display_name || query);
+        setSuggestions([]);
+        setActiveIndex(-1);
+    } catch (e) {
+        console.error(e);
+        toast({ variant: 'destructive', title: "Search Error", description: "An error occurred while searching." });
+    } finally {
+        setLoadingSearch(false);
+    }
+  };
+
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !suggestions.length && query.trim()) {
         e.preventDefault();
-        // This is a simplified search on enter without suggestions.
-        // For a full implementation, you'd fetch and select the first result.
+        handleSearch();
         return;
     }
 
@@ -155,6 +186,8 @@ export default function MapView({ markerPosition, setMarkerPosition }: { markerP
       e.preventDefault();
       if (activeIndex >= 0) {
         handleSelect(suggestions[activeIndex]);
+      } else {
+        handleSearch();
       }
     } else if (e.key === "Escape") {
       setSuggestions([]);
@@ -205,7 +238,7 @@ export default function MapView({ markerPosition, setMarkerPosition }: { markerP
                     <Input
                         type="text"
                         value={query}
-                        onChange={(e) => setQuery(e.target.value)}
+                        onChange={(e) => { setQuery(e.target.value); setSelectedPlace(null); }}
                         onKeyDown={handleKeyDown}
                         onBlur={() => setTimeout(() => setSuggestions([]), 200)}
                         placeholder="Search places..."
