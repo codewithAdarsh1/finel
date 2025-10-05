@@ -1,8 +1,9 @@
 "use client";
 
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
-export default function LandingPage() {
+export default function LandingPage({ setShowStory }: { setShowStory: (show: boolean) => void }) {
     return (
         <>
             <nav className="absolute top-0 left-0 w-full p-4 z-10 flex justify-between items-center">
@@ -18,6 +19,9 @@ export default function LandingPage() {
                 <p className="mt-4 text-lg text-white/80">
                     Get real-time environmental data at your fingertips. Make informed decisions for a healthier planet.
                 </p>
+                <Button onClick={() => setShowStory(true)} className="mt-6" variant="outline">
+                    Learn about Terra
+                </Button>
             </div>
         </>
     );

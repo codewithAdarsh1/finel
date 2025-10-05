@@ -3,12 +3,7 @@
 import React, { useState } from "react";
 import type { LatLng } from "leaflet";
 import AirQualityReport from "@/components/map/air-quality-report";
-import dynamic from 'next/dynamic';
-
-const MapView = dynamic(() => import('@/components/map/map-view'), {
-  ssr: false,
-  loading: () => <div className="w-full h-full bg-muted animate-pulse" />,
-});
+import MapView from '@/components/map/map-view';
 
 
 export default function DashboardPage() {
