@@ -1,13 +1,18 @@
 "use client";
 
-import React, { useState, useCallback, useMemo } from 'react';
-import type { LatLng } from 'leaflet';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import L, { LatLng } from 'leaflet';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { LocateFixed, Search, XIcon, Loader2, Link } from 'lucide-react';
+import { LocateFixed, Search, XIcon, Loader2, Link as LinkIcon } from 'lucide-react';
 import { OpenStreetMapProvider } from 'leaflet-geosearch';
-import Image from 'next/image';
+import 'leaflet/dist/leaflet.css';
+
+// Fix for default icon issues with webpack
+import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
+import iconUrl from 'leaflet/dist/images/marker-icon.png';
+import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
 
 interface MapViewProps {
   markerPosition: LatLng | null;
@@ -15,12 +20,52 @@ interface MapViewProps {
   setLocationName: (name: string) => void;
 }
 
-export default function MapView({ setMarkerPosition, setLocationName }: MapViewProps) {
+export default function MapView({ markerPosition, setMarkerPosition, setLocationName }: MapViewProps) {
+  const mapRef = useRef<L.Map | null>(null);
+  const markerRef = useRef<L.Marker | null>(null);
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
-  const [mapImageUrl, setMapImageUrl] = useState("https://picsum.photos/seed/map/1920/1080");
+
+  // Initialize Leaflet only on the client side
+  useEffect(() => {
+    (async () => {
+      // Set up the default icon
+      // @ts-ignore
+      delete L.Icon.Default.prototype._getIconUrl;
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: iconRetinaUrl.src,
+        iconUrl: iconUrl.src,
+        shadowUrl: shadowUrl.src,
+      });
+
+      // Initialize map
+      const map = L.map('map', {
+        center: [20, 0],
+        zoom: 3,
+        zoomControl: false,
+      });
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+
+      // Add zoom control to the bottom right
+      L.control.zoom({ position: 'bottomright' }).addTo(map);
+      
+      map.on('click', (e) => {
+        handleSetPosition(e.latlng);
+      });
+
+      mapRef.current = map;
+
+    })();
+
+    return () => {
+      mapRef.current?.remove();
+    };
+  }, []);
 
   const provider = useMemo(() => new OpenStreetMapProvider({
     params: {
@@ -29,16 +74,6 @@ export default function MapView({ setMarkerPosition, setLocationName }: MapViewP
         addressdetails: 1,
     }
   }), []);
-
-  const updateMapImage = useCallback((latlng: LatLng) => {
-    // A simple zoom level
-    const zoom = 13;
-    // Calculate tile coordinates from lat/lng
-    const n = Math.pow(2, zoom);
-    const xtile = Math.floor(n * ((latlng.lng + 180) / 360));
-    const ytile = Math.floor(n * (1 - (Math.log(Math.tan(latlng.lat * Math.PI / 180) + 1 / Math.cos(latlng.lat * Math.PI / 180)) / Math.PI)) / 2);
-    setMapImageUrl(`https://b.tile.openstreetmap.org/${zoom}/${xtile}/${ytile}.png`);
-  }, []);
 
   const reverseGeocode = useCallback(async (latlng: LatLng) => {
     try {
@@ -55,16 +90,26 @@ export default function MapView({ setMarkerPosition, setLocationName }: MapViewP
     }
   }, [setLocationName, provider]);
 
+  const handleSetPosition = (latlng: LatLng, zoomLevel: number = 13) => {
+      setMarkerPosition(latlng);
+      reverseGeocode(latlng);
+      if (mapRef.current) {
+        mapRef.current.flyTo(latlng, zoomLevel);
+        if (markerRef.current) {
+          markerRef.current.setLatLng(latlng);
+        } else {
+          markerRef.current = L.marker(latlng).addTo(mapRef.current);
+        }
+      }
+  };
 
   const handleUseMyLocation = () => {
     setIsLocating(true);
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        const latlng = { lat: latitude, lng: longitude } as LatLng;
-        setMarkerPosition(latlng);
-        reverseGeocode(latlng);
-        updateMapImage(latlng);
+        const latlng = new LatLng(latitude, longitude);
+        handleSetPosition(latlng);
         setIsLocating(false);
       },
       (error) => {
@@ -83,6 +128,7 @@ export default function MapView({ setMarkerPosition, setLocationName }: MapViewP
 
     const search = async () => {
       setIsLoading(true);
+      // @ts-ignore
       const results = await provider.search({ query });
       setSuggestions(results);
       setIsLoading(false);
@@ -95,25 +141,14 @@ export default function MapView({ setMarkerPosition, setLocationName }: MapViewP
   const onSuggestionClick = (place: any) => {
     setQuery(place.label);
     setSuggestions([]);
-    const latlng = { lat: place.y, lng: place.x } as LatLng;
-    setMarkerPosition(latlng);
+    const latlng = new LatLng(place.y, place.x);
+    handleSetPosition(latlng);
     setLocationName(place.label);
-    updateMapImage(latlng);
   };
 
   return (
     <div className="absolute inset-0 w-full h-full">
-      <Image 
-        key={mapImageUrl}
-        src={mapImageUrl} 
-        alt="World map" 
-        fill
-        className="object-cover transition-opacity duration-500"
-        quality={mapImageUrl.includes('picsum') ? 90 : 100}
-        priority
-        data-ai-hint={mapImageUrl.includes('picsum') ? "world map" : "location map"}
-      />
-      <div className="absolute inset-0 bg-black/20"></div>
+      <div id="map" className="w-full h-full" />
       
       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 w-[calc(100%-2rem)] sm:w-96">
           <div className="relative">
@@ -144,7 +179,7 @@ export default function MapView({ setMarkerPosition, setLocationName }: MapViewP
           </div>
           
           {suggestions.length > 0 && (
-              <Card className="mt-2 max-h-60 overflow-y-auto shadow-lg">
+              <Card className="mt-2 max-h-60 overflow-y-auto shadow-lg z-[1001]">
                   <CardContent className="p-2">
                       {isLoading ? (
                           <div className="flex items-center justify-center p-4">
@@ -167,10 +202,10 @@ export default function MapView({ setMarkerPosition, setLocationName }: MapViewP
           )}
       </div>
 
-       <div className="absolute bottom-4 right-4 z-10">
+       <div className="absolute bottom-4 right-4 z-[1000]">
          <Button variant="ghost" size="sm" asChild>
-           <a href="/" className="flex items-center gap-2 text-white/80 hover:text-white bg-black/50 rounded-md p-2">
-             <Link className="h-4 w-4" /> Go to Landing Page
+           <a href="/" className="flex items-center gap-2 text-foreground hover:text-primary bg-card/80 rounded-md p-2">
+             <LinkIcon className="h-4 w-4" /> Go to Landing Page
            </a>
          </Button>
       </div>

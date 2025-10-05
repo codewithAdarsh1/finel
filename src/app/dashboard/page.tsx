@@ -27,7 +27,7 @@ export default function DashboardPage() {
                 setLocationName={setLocationName}
               />
               <div className="absolute bottom-4 left-4 bg-card/90 backdrop-blur-md rounded-xl px-4 py-2 text-sm shadow">
-                Use the search bar to select a location
+                Use the search bar or click on the map to select a location
               </div>
             </section>
         </div>
