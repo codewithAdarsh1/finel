@@ -20,6 +20,7 @@ export default function MapView({ setMarkerPosition, setLocationName }: MapViewP
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
+  const [mapImageUrl, setMapImageUrl] = useState("https://picsum.photos/seed/map/1920/1080");
 
   const provider = useMemo(() => new OpenStreetMapProvider({
     params: {
@@ -28,6 +29,16 @@ export default function MapView({ setMarkerPosition, setLocationName }: MapViewP
         addressdetails: 1,
     }
   }), []);
+
+  const updateMapImage = useCallback((latlng: LatLng) => {
+    // A simple zoom level
+    const zoom = 13;
+    // Calculate tile coordinates from lat/lng
+    const n = Math.pow(2, zoom);
+    const xtile = Math.floor(n * ((latlng.lng + 180) / 360));
+    const ytile = Math.floor(n * (1 - (Math.log(Math.tan(latlng.lat * Math.PI / 180) + 1 / Math.cos(latlng.lat * Math.PI / 180)) / Math.PI)) / 2);
+    setMapImageUrl(`https://b.tile.openstreetmap.org/${zoom}/${xtile}/${ytile}.png`);
+  }, []);
 
   const reverseGeocode = useCallback(async (latlng: LatLng) => {
     try {
@@ -53,6 +64,7 @@ export default function MapView({ setMarkerPosition, setLocationName }: MapViewP
         const latlng = { lat: latitude, lng: longitude } as LatLng;
         setMarkerPosition(latlng);
         reverseGeocode(latlng);
+        updateMapImage(latlng);
         setIsLocating(false);
       },
       (error) => {
@@ -86,19 +98,22 @@ export default function MapView({ setMarkerPosition, setLocationName }: MapViewP
     const latlng = { lat: place.y, lng: place.x } as LatLng;
     setMarkerPosition(latlng);
     setLocationName(place.label);
+    updateMapImage(latlng);
   };
 
   return (
     <div className="absolute inset-0 w-full h-full">
       <Image 
-        src="https://picsum.photos/seed/map/1920/1080" 
+        key={mapImageUrl}
+        src={mapImageUrl} 
         alt="World map" 
         fill
-        className="object-cover"
-        quality={90}
+        className="object-cover transition-opacity duration-500"
+        quality={mapImageUrl.includes('picsum') ? 90 : 100}
         priority
-        data-ai-hint="world map"
+        data-ai-hint={mapImageUrl.includes('picsum') ? "world map" : "location map"}
       />
+      <div className="absolute inset-0 bg-black/20"></div>
       
       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 w-[calc(100%-2rem)] sm:w-96">
           <div className="relative">
