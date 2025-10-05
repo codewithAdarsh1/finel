@@ -30,41 +30,44 @@ export default function MapView({ markerPosition, setMarkerPosition, setLocation
 
   // Initialize Leaflet only on the client side
   useEffect(() => {
-    (async () => {
-      // Set up the default icon
-      // @ts-ignore
-      delete L.Icon.Default.prototype._getIconUrl;
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl: iconRetinaUrl.src,
-        iconUrl: iconUrl.src,
-        shadowUrl: shadowUrl.src,
-      });
-
-      // Initialize map
-      const map = L.map('map', {
-        center: [20, 0],
-        zoom: 3,
-        zoomControl: false,
-      });
-
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      }).addTo(map);
-
-      // Add zoom control to the bottom right
-      L.control.zoom({ position: 'bottomright' }).addTo(map);
+    // Set up the default icon before map initialization
+    // @ts-ignore
+    delete L.Icon.Default.prototype._getIconUrl;
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl: iconRetinaUrl.src,
+      iconUrl: iconUrl.src,
+      shadowUrl: shadowUrl.src,
+    });
       
-      map.on('click', (e) => {
-        handleSetPosition(e.latlng);
-      });
+    // Initialize map
+    const map = L.map('map', {
+      center: [20, 0],
+      zoom: 3,
+      zoomControl: false,
+    });
 
-      mapRef.current = map;
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
 
-    })();
+    // Add zoom control to the bottom right
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+    
+    map.on('click', (e) => {
+      handleSetPosition(e.latlng);
+    });
+
+    mapRef.current = map;
+
+    // Initial marker if position is pre-set
+    if (markerPosition) {
+        handleSetPosition(markerPosition, 8);
+    }
 
     return () => {
       mapRef.current?.remove();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const provider = useMemo(() => new OpenStreetMapProvider({
@@ -150,7 +153,7 @@ export default function MapView({ markerPosition, setMarkerPosition, setLocation
     <div className="absolute inset-0 w-full h-full">
       <div id="map" className="w-full h-full" />
       
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 w-[calc(100%-2rem)] sm:w-96">
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] w-[calc(100%-2rem)] sm:w-96">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
