@@ -1,12 +1,11 @@
 "use client";
-import React, { useState } from "react";
+import React, { Suspense } from "react";
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { Skeleton } from "@/components/ui/skeleton";
 
 const Scene = dynamic(() => import('@/components/landing/Scene'), {
   ssr: false,
-  loading: () => <Skeleton className="w-full h-full bg-black" />,
 });
 
 
@@ -15,7 +14,9 @@ export default function Home() {
   return (
     <main className="w-full h-screen bg-black text-white overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-full z-0">
-        <Scene />
+        <Suspense fallback={<Skeleton className="w-full h-full bg-black" />}>
+          <Scene />
+        </Suspense>
       </div>
       <nav className="absolute top-0 left-0 w-full p-4 z-10 flex justify-between items-center">
         <h1 className="text-2xl font-bold font-headline">BreatheEasy</h1>
