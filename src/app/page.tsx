@@ -4,12 +4,7 @@ import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
 import type { LatLng } from 'leaflet';
 import AirQualityReport from '@/components/map/air-quality-report';
-import { Skeleton } from '@/components/ui/skeleton';
-
-const MapView = dynamic(() => import('@/components/map/map-view'), {
-  ssr: false,
-  loading: () => <Skeleton className="w-full h-full rounded-2xl bg-card" />,
-});
+import MapView from '@/components/map/map-view';
 
 export default function Home() {
   const [markerPosition, setMarkerPosition] = useState<LatLng | null>(null);
@@ -21,7 +16,7 @@ export default function Home() {
           <AirQualityReport position={markerPosition} />
         </div>
         <div className="relative xl:col-span-5 h-[60vh] xl:h-full p-4 md:p-6 pt-0 xl:pt-6 xl:pl-0">
-          <MapView markerPosition={markerPosition} setMarkerPosition={setMarkerPosition} />
+          <MapView setMarkerPosition={setMarkerPosition} />
         </div>
       </div>
     </main>
