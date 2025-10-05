@@ -1,7 +1,14 @@
 "use client";
 import React, { useState } from "react";
 import Link from 'next/link';
-import Scene from "@/components/landing/Scene";
+import dynamic from 'next/dynamic';
+import { Skeleton } from "@/components/ui/skeleton";
+
+const Scene = dynamic(() => import('@/components/landing/Scene'), {
+  ssr: false,
+  loading: () => <Skeleton className="w-full h-full bg-black" />,
+});
+
 
 export default function Home() {
   const [story, setStory] = useState(false);

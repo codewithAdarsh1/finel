@@ -266,9 +266,9 @@ export default function AirQualityReport({ position, locationName }: AirQualityR
         if (reportType === 'air' && interpretedAirData) {
             return (
                 <>
-                    <div className={`flex items-center justify-center flex-col gap-2 text-center p-6 rounded-lg bg-card border`}>
+                    <div className={'flex items-center justify-center flex-col gap-2 text-center p-6 rounded-lg bg-card border'}>
                         <div className={`${interpretedAirData.colorClass}`}>{React.cloneElement(interpretedAirData.icon as React.ReactElement, { size: 64, strokeWidth: 1.5 })}</div>
-                        <h3 className={`font-headline text-3xl font-bold ${interpretedAirData.colorClass}`}>
+                        <h3 className={'font-headline text-3xl font-bold ${interpretedAirData.colorClass}'}>
                             {interpretedAirData.level} (AQI: {interpretedAirData.aqi})
                         </h3>
                         <p className="text-muted-foreground">{interpretedAirData.description}</p>
