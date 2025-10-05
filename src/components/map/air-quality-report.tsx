@@ -5,7 +5,7 @@ import type { LatLng } from 'leaflet';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Leaf, Shield, MapPin, Smile, Frown, Meh, Angry, Annoyed, Wind, Mountain, BrainCircuit } from 'lucide-react';
+import { Leaf, Shield, MapPin, Smile, Frown, Meh, Angry, Annoyed, Wind, Mountain, BrainCircuit, Globe } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { soilAnalysis } from '@/ai/flows/soil-analysis-flow';
 import type { SoilAnalysisInput, SoilAnalysisOutput } from '@/ai/schemas/soil-analysis-schemas';
@@ -214,36 +214,36 @@ export default function AirQualityReport({ position, locationName }: AirQualityR
 
     // --- RENDER LOGIC ---
 
-    if (loading) {
+    if (!position) {
         return (
-            <Card>
-                <CardHeader>
-                    <Skeleton className="h-8 w-3/4" />
-                    <Skeleton className="h-4 w-1/2" />
+            <Card className="bg-white/80 dark:bg-black/80 backdrop-blur-lg border-white/20 shadow-xl">
+                <CardHeader className="text-center pt-8">
+                    <div className="mx-auto bg-primary/20 text-primary p-4 rounded-full w-fit mb-4">
+                        <Globe className="w-12 h-12" />
+                    </div>
+                    <CardTitle className="font-headline text-4xl">Welcome to BreatheEasy</CardTitle>
+                    <CardDescription className="text-lg">Your personal environment assistant</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                    <Skeleton className="h-32 w-full" />
-                    <Skeleton className="h-48 w-full" />
+                <CardContent className="text-center pb-8">
+                    <div className="flex items-center justify-center text-muted-foreground mt-4">
+                        <MapPin className="w-5 h-5 mr-2" />
+                        <p>Use the search bar above to analyze a location.</p>
+                    </div>
                 </CardContent>
             </Card>
         )
     }
-
-    if (!position) {
+    
+    if (loading) {
         return (
-            <Card className="h-full flex flex-col justify-center">
-                <CardHeader className="text-center">
-                    <div className="mx-auto bg-primary/20 text-primary p-3 rounded-full w-fit mb-4">
-                        <Wind className="w-10 h-10" />
-                    </div>
-                    <CardTitle className="font-headline text-3xl">BreatheEasy</CardTitle>
-                    <CardDescription>Your personal environment assistant</CardDescription>
+            <Card className="bg-white/80 dark:bg-black/80 backdrop-blur-lg border-white/20 shadow-xl">
+                <CardHeader>
+                    <Skeleton className="h-8 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
                 </CardHeader>
-                <CardContent className="text-center">
-                    <div className="flex items-center justify-center text-muted-foreground">
-                        <MapPin className="w-5 h-5 mr-2" />
-                        <p>Select a location on the map to get started.</p>
-                    </div>
+                <CardContent className="space-y-6 pt-6">
+                    <Skeleton className="h-32 w-full" />
+                    <Skeleton className="h-48 w-full" />
                 </CardContent>
             </Card>
         )
@@ -252,9 +252,9 @@ export default function AirQualityReport({ position, locationName }: AirQualityR
     const renderReport = () => {
         if (error) {
             return (
-                <Card>
+                <Card className="border-destructive/50 bg-destructive/10">
                     <CardHeader>
-                        <CardTitle className="font-headline">Error</CardTitle>
+                        <CardTitle className="font-headline text-destructive">Error</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <p className="text-destructive">⚠️ Could not fetch data: {error}</p>
@@ -265,16 +265,19 @@ export default function AirQualityReport({ position, locationName }: AirQualityR
 
         if (reportType === 'air' && interpretedAirData) {
             return (
-                <>
-                    <div className={'flex items-center justify-center flex-col gap-2 text-center p-6 rounded-lg bg-card border'}>
-                        <div className={`${interpretedAirData.colorClass}`}>{React.cloneElement(interpretedAirData.icon as React.ReactElement, { size: 64, strokeWidth: 1.5 })}</div>
-                        <h3 className={'font-headline text-3xl font-bold ${interpretedAirData.colorClass}'}>
-                            {interpretedAirData.level} (AQI: {interpretedAirData.aqi})
-                        </h3>
-                        <p className="text-muted-foreground">{interpretedAirData.description}</p>
-                    </div>
+                <div className="space-y-6">
+                    <Card className={'text-center border-0 shadow-none bg-transparent'}>
+                        <CardContent className="pt-6">
+                            <div className={`${interpretedAirData.colorClass}`}>{React.cloneElement(interpretedAirData.icon as React.ReactElement, { size: 64, strokeWidth: 1.5 })}</div>
+                            <h3 className={'font-headline text-4xl font-bold mt-4'}>
+                                {interpretedAirData.level}
+                            </h3>
+                            <p className="text-muted-foreground text-sm">(AQI: {interpretedAirData.aqi})</p>
+                            <p className="mt-2">{interpretedAirData.description}</p>
+                        </CardContent>
+                    </Card>
                     
-                    <Card className="bg-secondary/50">
+                    <Card>
                         <CardHeader className="flex-row items-center gap-4 space-y-0">
                             <Shield className="w-6 h-6 text-accent" />
                             <CardTitle className="font-headline text-xl">Recommended Actions</CardTitle>
@@ -299,31 +302,33 @@ export default function AirQualityReport({ position, locationName }: AirQualityR
                             </Table>
                         </CardContent>
                     </Card>
-                </>
+                </div>
             )
         }
 
-        if (reportType === 'soil' && soilData) {
+        if (reportType === 'soil') {
             return (
-                 <>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="font-headline text-xl">Soil Metrics (0-5cm)</CardTitle>
-                            <CardDescription>Data from SoilGrids</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <Table>
-                                <TableBody>
-                                    {soilData.map((item) => (
-                                        <TableRow key={item.name}>
-                                            <TableCell className="font-medium">{item.property}</TableCell>
-                                            <TableCell className="text-right">{item.mean.toFixed(2)} {item.unit}</TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </CardContent>
-                    </Card>
+                 <div className="space-y-6">
+                    {soilData && soilData.length > 0 && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="font-headline text-xl">Soil Metrics (0-5cm)</CardTitle>
+                                <CardDescription>Data from SoilGrids</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableBody>
+                                        {soilData.map((item) => (
+                                            <TableRow key={item.name}>
+                                                <TableCell className="font-medium">{item.property}</TableCell>
+                                                <TableCell className="text-right">{item.mean.toFixed(2)} {item.unit}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                        </Card>
+                    )}
 
                     {aiLoading && (
                         <Card>
@@ -331,17 +336,19 @@ export default function AirQualityReport({ position, locationName }: AirQualityR
                                 <BrainCircuit className="w-6 h-6 text-accent animate-pulse" />
                                 <CardTitle className="font-headline text-xl">AI Advisor Analyzing...</CardTitle>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="pt-4">
                                 <Skeleton className="h-4 w-3/4 mb-2" />
                                 <Skeleton className="h-4 w-1/2" />
+                                <Skeleton className="h-4 w-full mt-4 mb-2" />
+                                <Skeleton className="h-4 w-2/3" />
                             </CardContent>
                         </Card>
                     )}
 
                     {aiError && (
-                         <Card>
+                         <Card className="border-destructive/50 bg-destructive/10">
                             <CardHeader>
-                                <CardTitle className="font-headline">AI Error</CardTitle>
+                                <CardTitle className="font-headline text-destructive">AI Error</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <p className="text-destructive">⚠️ Could not get AI analysis: {aiError}</p>
@@ -355,37 +362,39 @@ export default function AirQualityReport({ position, locationName }: AirQualityR
                                 <BrainCircuit className="w-6 h-6 text-primary" />
                                 <CardTitle className="font-headline text-xl text-primary">AI Farming Advisor</CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-4">
+                            <CardContent className="space-y-4 pt-4">
                                 <div>
-                                    <h4 className="font-semibold mb-1">Soil Type</h4>
-                                    <p className="text-sm">{aiAnalysis.soilType.type}: {aiAnalysis.soilType.description}</p>
+                                    <h4 className="font-semibold mb-1 text-primary-foreground/80">Soil Type</h4>
+                                    <p><span className="font-medium">{aiAnalysis.soilType.type}:</span> {aiAnalysis.soilType.description}</p>
                                 </div>
                                 <div>
-                                    <h4 className="font-semibold mb-1">Suitable Crops</h4>
+                                    <h4 className="font-semibold mb-1 text-primary-foreground/80">Suitable Crops</h4>
                                     <p className="text-sm">{aiAnalysis.cropSuggestions.join(', ')}</p>
                                 </div>
                                 <div>
-                                    <h4 className="font-semibold mb-1">Soil Amendments</h4>
-                                    <p className="text-sm">{aiAnalysis.amendmentSuggestions.join('. ')}.</p>
+                                    <h4 className="font-semibold mb-1 text-primary-foreground/80">Soil Amendments</h4>
+                                    <ul className="list-disc pl-5 text-sm space-y-1">
+                                        {aiAnalysis.amendmentSuggestions.map((s, i) => <li key={i}>{s}</li>)}
+                                    </ul>
                                 </div>
                             </CardContent>
                         </Card>
                     )}
-                 </>
+                 </div>
             )
         }
-        return null;
+        return <p className="text-center text-muted-foreground py-10">No data available for this selection.</p>;
     }
 
     return (
-        <Card>
-            <CardHeader>
+        <Card className="bg-white/80 dark:bg-black/80 backdrop-blur-lg border-white/20 shadow-xl max-h-[calc(100vh-12rem)] overflow-y-auto">
+            <CardHeader className="sticky top-0 bg-inherit bg-opacity-80 backdrop-blur-sm z-10">
                 <CardTitle className="font-headline text-2xl flex justify-between items-center">
                     <span>
                         {reportType === 'air' ? 'Air Quality Report' : 'Soil Quality Report'}
                     </span>
                      <Select value={reportType} onValueChange={(value: 'air' | 'soil') => setReportType(value)}>
-                        <SelectTrigger className="w-[140px] text-sm">
+                        <SelectTrigger className="w-[150px] text-sm">
                             <SelectValue placeholder="Select report" />
                         </SelectTrigger>
                         <SelectContent>
@@ -395,7 +404,7 @@ export default function AirQualityReport({ position, locationName }: AirQualityR
                     </Select>
                 </CardTitle>
                 <CardDescription>
-                    {locationName ? locationName : `Location: ${position.lat.toFixed(4)}, ${position.lng.toFixed(4)}`}
+                    {locationName ? locationName : `Lat: ${position.lat.toFixed(4)}, Lng: ${position.lng.toFixed(4)}`}
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
