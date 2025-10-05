@@ -52,6 +52,40 @@ type PlaceSuggestion = {
     lon: string;
 }
 
+const MapViewComponent = React.memo(function MapViewComponent({ markerPosition, setMarkerPosition, query, setQuery }: { markerPosition: LatLng | null, setMarkerPosition: (pos: LatLng | null) => void, query: string, setQuery: (q: string) => void }) {
+    return (
+        <MapContainer
+            center={[27, 85]}
+            zoom={ZOOM.initial}
+            minZoom={ZOOM.min}
+            maxZoom={ZOOM.max}
+            className="w-full h-full"
+            scrollWheelZoom={true}
+        >
+            <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            maxZoom={ZOOM.max}
+            />
+            <ClickableMap setMarker={(latlng) => {
+                setMarkerPosition(latlng);
+                // Clear search query when clicking on the map
+                const q = query.trim();
+                if (q !== "Your Location" && q !== "") {
+                    setQuery("");
+                }
+            }} />
+            {markerPosition && (
+            <>
+                <Marker position={markerPosition} />
+                <FlyToMarker position={markerPosition} />
+            </>
+            )}
+        </MapContainer>
+    );
+});
+MapViewComponent.displayName = 'MapViewComponent';
+
 export default function MapView({ markerPosition, setMarkerPosition }: { markerPosition: LatLng | null, setMarkerPosition: (pos: LatLng | null) => void }) {
   const { toast } = useToast();
   const [query, setQuery] = useState("");
@@ -161,27 +195,7 @@ export default function MapView({ markerPosition, setMarkerPosition }: { markerP
 
   return (
     <div className="relative w-full h-full">
-      <MapContainer
-        center={[27, 85]}
-        zoom={ZOOM.initial}
-        minZoom={ZOOM.min}
-        maxZoom={ZOOM.max}
-        className="w-full h-full"
-        scrollWheelZoom={true}
-      >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          maxZoom={ZOOM.max}
-        />
-        <ClickableMap setMarker={setMarkerPosition} />
-        {markerPosition && (
-          <>
-            <Marker position={markerPosition} />
-            <FlyToMarker position={markerPosition} />
-          </>
-        )}
-      </MapContainer>
+      <MapViewComponent markerPosition={markerPosition} setMarkerPosition={setMarkerPosition} query={query} setQuery={setQuery} />
       
       <div className="absolute top-4 right-4 z-[1000] w-[calc(100%-2rem)] sm:w-96">
         <Card>
