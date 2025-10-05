@@ -1,54 +1,15 @@
 "use client";
 
-import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
-import type { LatLng, Map as LeafletMap } from 'leaflet';
+import React, { useState, useCallback, useMemo } from 'react';
+import type { LatLng } from 'leaflet';
 import L from 'leaflet';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { LocateFixed, Search, XIcon, Loader2 } from 'lucide-react';
 import { OpenStreetMapProvider } from 'leaflet-geosearch';
+import Image from 'next/image';
 
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-
-// @ts-ignore
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconUrl: markerIcon.src,
-  iconRetinaUrl: markerIcon2x.src,
-  shadowUrl: markerShadow.src,
-});
-
-const ZOOM = {
-  initial: 5,
-  min: 3,
-  max: 18,
-  flyTo: 14,
-};
-
-function FlyToMarker({ position }: { position: LatLng | null }) {
-  const map = useMap();
-  useEffect(() => {
-    if (position) {
-      map.flyTo(position, ZOOM.flyTo, {
-        duration: 1.2,
-      });
-    }
-  }, [position, map]);
-  return null;
-}
-
-function ClickableMap({ onMapClick }: { onMapClick: (latlng: LatLng) => void }) {
-  useMapEvents({
-    click(e) {
-      onMapClick(e.latlng);
-    },
-  });
-  return null;
-}
 
 interface MapViewProps {
   markerPosition: LatLng | null;
@@ -57,26 +18,20 @@ interface MapViewProps {
 }
 
 export default function MapView({ markerPosition, setMarkerPosition, setLocationName }: MapViewProps) {
-  const [isClient, setIsClient] = useState(false);
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
 
-  const provider = new OpenStreetMapProvider({
+  const provider = useMemo(() => new OpenStreetMapProvider({
     params: {
         'accept-language': 'en',
         countrycodes: '',
         addressdetails: 1,
     }
-  });
+  }), []);
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  const handleMapClick = useCallback(async (latlng: LatLng) => {
-    setMarkerPosition(latlng);
+  const reverseGeocode = useCallback(async (latlng: LatLng) => {
     setIsLoading(true);
     try {
       // @ts-ignore
@@ -92,7 +47,8 @@ export default function MapView({ markerPosition, setMarkerPosition, setLocation
     } finally {
       setIsLoading(false);
     }
-  }, [setMarkerPosition, setLocationName]);
+  }, [setLocationName, provider]);
+
 
   const handleUseMyLocation = () => {
     setIsLocating(true);
@@ -100,7 +56,8 @@ export default function MapView({ markerPosition, setMarkerPosition, setLocation
       (position) => {
         const { latitude, longitude } = position.coords;
         const latlng = new L.LatLng(latitude, longitude);
-        handleMapClick(latlng);
+        setMarkerPosition(latlng);
+        reverseGeocode(latlng);
         setIsLocating(false);
       },
       (error) => {
@@ -111,7 +68,7 @@ export default function MapView({ markerPosition, setMarkerPosition, setLocation
     );
   };
   
-  useEffect(() => {
+  React.useEffect(() => {
     if (query.length < 3) {
       setSuggestions([]);
       return;
@@ -126,7 +83,7 @@ export default function MapView({ markerPosition, setMarkerPosition, setLocation
 
     const debounce = setTimeout(search, 500);
     return () => clearTimeout(debounce);
-  }, [query]);
+  }, [query, provider]);
 
   const onSuggestionClick = (place: any) => {
     setQuery('');
@@ -136,40 +93,15 @@ export default function MapView({ markerPosition, setMarkerPosition, setLocation
     setLocationName(place.label);
   };
 
-
-  const mapRef = useRef<LeafletMap>(null);
-
-  useEffect(() => {
-    return () => {
-        if(mapRef.current) {
-            mapRef.current.remove();
-        }
-    }
-  }, [])
-
-  if (!isClient) {
-    return <div className="w-full h-full bg-muted animate-pulse" />;
-  }
-
   return (
-    <div className="relative w-full h-full">
-      <MapContainer
-        center={[20, 0]}
-        zoom={2}
-        minZoom={ZOOM.min}
-        maxZoom={ZOOM.max}
-        className="h-full w-full rounded-2xl"
-        // @ts-ignore
-        whenCreated={mapInstance => { mapRef.current = mapInstance }}
-      >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        />
-        <ClickableMap onMapClick={handleMapClick} />
-        {markerPosition && <Marker position={markerPosition} />}
-        <FlyToMarker position={markerPosition} />
-      </MapContainer>
+    <div className="relative w-full h-full rounded-2xl overflow-hidden">
+      <Image 
+        src="https://picsum.photos/seed/map/1200/800" 
+        alt="Map placeholder" 
+        fill
+        className="brightness-75 object-cover"
+        data-ai-hint="world map"
+      />
       
       <div className="absolute top-4 right-4 z-[1000] w-[calc(100%-2rem)] sm:w-96">
         <Card>
