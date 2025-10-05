@@ -5,8 +5,9 @@ import type { LatLng } from 'leaflet';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Leaf, Shield, MapPin, Smile, Frown, Meh, Angry, Annoyed, Wind, Mountain, Droplets } from 'lucide-react';
+import { Leaf, Shield, MapPin, Smile, Frown, Meh, Angry, Annoyed, Wind, Mountain, Droplets, BrainCircuit } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { soilAnalysis, SoilAnalysisInput, SoilAnalysisOutput } from '@/ai/flows/soil-analysis-flow';
 
 
 // --- Air Quality Types ---
@@ -94,6 +95,12 @@ export default function AirQualityReport({ position, locationName }: AirQualityR
     const [soilData, setSoilData] = useState<SoilData[] | null>(null);
     const [soilError, setSoilError] = useState<string | null>(null);
     const [soilLoading, setSoilLoading] = useState(false);
+    
+    // AI Soil Analysis State
+    const [aiAnalysis, setAiAnalysis] = useState<SoilAnalysisOutput | null>(null);
+    const [aiLoading, setAiLoading] = useState(false);
+    const [aiError, setAiError] = useState<string | null>(null);
+
 
     // Fetch Air Quality Data
     useEffect(() => {
@@ -128,12 +135,17 @@ export default function AirQualityReport({ position, locationName }: AirQualityR
         if (!position || reportType !== 'soil') {
             setSoilData(null);
             setSoilError(null);
+            setAiAnalysis(null);
+            setAiError(null);
             return;
         }
 
-        const fetchSoilData = async () => {
+        const fetchAndAnalyzeSoil = async () => {
             setSoilLoading(true);
             setSoilError(null);
+            setAiAnalysis(null);
+            setAiError(null);
+            
             const url = `https://rest.isric.org/soilgrids/v2.0/properties/query?lon=${position.lng}&lat=${position.lat}&property=clay&property=sand&property=silt&property=soc&property=phh2o&property=nitrogen&property=bdod&depth=0-5cm`;
             try {
                 const response = await fetch(url);
@@ -169,14 +181,30 @@ export default function AirQualityReport({ position, locationName }: AirQualityR
                 }).filter(Boolean) as SoilData[];
                 
                 setSoilData(processed);
+                setSoilLoading(false); // Stop soil loading before starting AI analysis
+
+                // Now, trigger AI analysis
+                setAiLoading(true);
+                const aiInput: SoilAnalysisInput = processed.reduce((acc, item) => {
+                    if (item.name === 'phh2o') acc.ph = item.mean;
+                    else if (item.name === 'soc') acc.soc = item.mean;
+                    else acc[item.name as keyof Omit<SoilAnalysisInput, 'ph' | 'soc'>] = item.mean;
+                    return acc;
+                }, {} as SoilAnalysisInput);
+
+                const analysisResult = await soilAnalysis(aiInput);
+                setAiAnalysis(analysisResult);
+
             } catch (err: any) {
-                setSoilError(err.message);
+                if (soilLoading) setSoilError(err.message);
+                else setAiError(err.message);
             } finally {
                 setSoilLoading(false);
+                setAiLoading(false);
             }
         };
 
-        fetchSoilData();
+        fetchAndAnalyzeSoil();
     }, [position, reportType]);
 
     const interpretedAirData = airData ? interpretAirQuality(airData) : null;
@@ -276,24 +304,73 @@ export default function AirQualityReport({ position, locationName }: AirQualityR
 
         if (reportType === 'soil' && soilData) {
             return (
-                 <Card>
-                    <CardHeader>
-                        <CardTitle className="font-headline text-xl">Soil Metrics (0-5cm)</CardTitle>
-                        <CardDescription>Data from SoilGrids</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Table>
-                            <TableBody>
-                                {soilData.map((item) => (
-                                    <TableRow key={item.name}>
-                                        <TableCell className="font-medium">{item.property}</TableCell>
-                                        <TableCell className="text-right">{item.mean.toFixed(2)} {item.unit}</TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                </Card>
+                 <>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="font-headline text-xl">Soil Metrics (0-5cm)</CardTitle>
+                            <CardDescription>Data from SoilGrids</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Table>
+                                <TableBody>
+                                    {soilData.map((item) => (
+                                        <TableRow key={item.name}>
+                                            <TableCell className="font-medium">{item.property}</TableCell>
+                                            <TableCell className="text-right">{item.mean.toFixed(2)} {item.unit}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </CardContent>
+                    </Card>
+
+                    {aiLoading && (
+                        <Card>
+                            <CardHeader className="flex-row items-center gap-4 space-y-0">
+                                <BrainCircuit className="w-6 h-6 text-accent animate-pulse" />
+                                <CardTitle className="font-headline text-xl">AI Advisor Analyzing...</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <Skeleton className="h-4 w-3/4 mb-2" />
+                                <Skeleton className="h-4 w-1/2" />
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {aiError && (
+                         <Card>
+                            <CardHeader>
+                                <CardTitle className="font-headline">AI Error</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-destructive">⚠️ Could not get AI analysis: {aiError}</p>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {aiAnalysis && (
+                        <Card className="bg-primary/10 border-primary/50">
+                            <CardHeader className="flex-row items-center gap-4 space-y-0">
+                                <BrainCircuit className="w-6 h-6 text-primary" />
+                                <CardTitle className="font-headline text-xl text-primary">AI Farming Advisor</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div>
+                                    <h4 className="font-semibold mb-1">Soil Type</h4>
+                                    <p className="text-sm">{aiAnalysis.soilType.type}: {aiAnalysis.soilType.description}</p>
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold mb-1">Suitable Crops</h4>
+                                    <p className="text-sm">{aiAnalysis.cropSuggestions.join(', ')}</p>
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold mb-1">Soil Amendments</h4>
+                                    <p className="text-sm">{aiAnalysis.amendmentSuggestions.join('. ')}.</p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+                 </>
             )
         }
         return null;
