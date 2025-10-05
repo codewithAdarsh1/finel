@@ -5,7 +5,7 @@ import type { LatLng } from 'leaflet';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Leaf, Shield, MapPin, Smile, Frown, Meh, Angry, Annoyed } from 'lucide-react';
+import { Leaf, Shield, MapPin, Smile, Frown, Meh, Angry, Annoyed, Wind } from 'lucide-react';
 
 type AirQualityData = {
   list: {
@@ -56,7 +56,7 @@ const PollutantRow = ({ name, value, unit }: { name: string, value: number, unit
     </TableRow>
 )
 
-export default function AirQualityReport({ position }: { position: LatLng | null }) {
+export default function AirQualityReport({ position, locationName }: { position: LatLng | null, locationName: string | null }) {
   const [airData, setAirData] = useState<AirQualityData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -116,7 +116,7 @@ export default function AirQualityReport({ position }: { position: LatLng | null
         <Card className="h-full flex flex-col justify-center">
             <CardHeader className="text-center">
                 <div className="mx-auto bg-primary/20 text-primary p-3 rounded-full w-fit mb-4">
-                    <Leaf className="w-10 h-10" />
+                    <Wind className="w-10 h-10" />
                 </div>
                 <CardTitle className="font-headline text-3xl">BreatheEasy</CardTitle>
                 <CardDescription>Your personal air quality assistant</CardDescription>
@@ -152,7 +152,9 @@ export default function AirQualityReport({ position }: { position: LatLng | null
     <Card>
         <CardHeader>
             <CardTitle className="font-headline text-2xl">Air Quality Report</CardTitle>
-            <CardDescription>Location: {position.lat.toFixed(4)}, {position.lng.toFixed(4)}</CardDescription>
+            <CardDescription>
+              {locationName ? locationName : `Location: ${position.lat.toFixed(4)}, ${position.lng.toFixed(4)}`}
+            </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
             <div className={`flex items-center justify-center flex-col gap-2 text-center p-6 rounded-lg bg-card border`}>
