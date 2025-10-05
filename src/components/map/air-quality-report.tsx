@@ -5,9 +5,10 @@ import type { LatLng } from 'leaflet';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Leaf, Shield, MapPin, Smile, Frown, Meh, Angry, Annoyed, Wind, Mountain, Droplets, BrainCircuit } from 'lucide-react';
+import { Leaf, Shield, MapPin, Smile, Frown, Meh, Angry, Annoyed, Wind, Mountain, BrainCircuit } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { soilAnalysis, SoilAnalysisInput, SoilAnalysisOutput } from '@/ai/flows/soil-analysis-flow';
+import { soilAnalysis } from '@/ai/flows/soil-analysis-flow';
+import type { SoilAnalysisInput, SoilAnalysisOutput } from '@/ai/schemas/soil-analysis-schemas';
 
 
 // --- Air Quality Types ---
