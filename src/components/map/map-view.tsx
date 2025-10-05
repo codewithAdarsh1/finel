@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useMemo } from 'react';
-import type { LatLng, LatLngTuple } from 'leaflet';
-import L from 'leaflet';
+import type { LatLng } from 'leaflet';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -51,7 +50,7 @@ export default function MapView({ setMarkerPosition, setLocationName }: MapViewP
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        const latlng = new L.LatLng(latitude, longitude);
+        const latlng = { lat: latitude, lng: longitude } as LatLng;
         setMarkerPosition(latlng);
         reverseGeocode(latlng);
         setIsLocating(false);
@@ -84,7 +83,7 @@ export default function MapView({ setMarkerPosition, setLocationName }: MapViewP
   const onSuggestionClick = (place: any) => {
     setQuery(place.label);
     setSuggestions([]);
-    const latlng = new L.LatLng(place.y, place.x);
+    const latlng = { lat: place.y, lng: place.x } as LatLng;
     setMarkerPosition(latlng);
     setLocationName(place.label);
   };
@@ -95,7 +94,7 @@ export default function MapView({ setMarkerPosition, setLocationName }: MapViewP
         src="https://picsum.photos/seed/map/1920/1080" 
         alt="World map" 
         fill
-        className="object-cover brightness-50"
+        className="object-cover"
         quality={90}
         priority
         data-ai-hint="world map"
@@ -120,7 +119,7 @@ export default function MapView({ setMarkerPosition, setLocationName }: MapViewP
              <Button 
                 variant="ghost" 
                 size="icon" 
-                className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full" 
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-background" 
                 onClick={handleUseMyLocation}
                 disabled={isLocating}
                 title="Use My Location"
@@ -155,7 +154,7 @@ export default function MapView({ setMarkerPosition, setLocationName }: MapViewP
 
        <div className="absolute bottom-4 right-4 z-10">
          <Button variant="ghost" size="sm" asChild>
-           <a href="/" className="flex items-center gap-2 text-white/80 hover:text-white">
+           <a href="/" className="flex items-center gap-2 text-white/80 hover:text-white bg-black/50 rounded-md p-2">
              <Link className="h-4 w-4" /> Go to Landing Page
            </a>
          </Button>

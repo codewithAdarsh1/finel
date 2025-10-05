@@ -216,7 +216,7 @@ export default function AirQualityReport({ position, locationName }: AirQualityR
 
     if (!position) {
         return (
-            <Card className="bg-white/80 dark:bg-black/80 backdrop-blur-lg border-white/20 shadow-xl">
+            <Card className="bg-transparent border-0 shadow-none">
                 <CardHeader className="text-center pt-8">
                     <div className="mx-auto bg-primary/20 text-primary p-4 rounded-full w-fit mb-4">
                         <Globe className="w-12 h-12" />
@@ -227,7 +227,7 @@ export default function AirQualityReport({ position, locationName }: AirQualityR
                 <CardContent className="text-center pb-8">
                     <div className="flex items-center justify-center text-muted-foreground mt-4">
                         <MapPin className="w-5 h-5 mr-2" />
-                        <p>Use the search bar above to analyze a location.</p>
+                        <p>Use the search bar to find a location.</p>
                     </div>
                 </CardContent>
             </Card>
@@ -236,7 +236,7 @@ export default function AirQualityReport({ position, locationName }: AirQualityR
     
     if (loading) {
         return (
-            <Card className="bg-white/80 dark:bg-black/80 backdrop-blur-lg border-white/20 shadow-xl">
+            <Card className="bg-transparent border-0 shadow-none">
                 <CardHeader>
                     <Skeleton className="h-8 w-3/4" />
                     <Skeleton className="h-4 w-1/2" />
@@ -387,7 +387,7 @@ export default function AirQualityReport({ position, locationName }: AirQualityR
     }
 
     return (
-        <Card className="bg-white/80 dark:bg-black/80 backdrop-blur-lg border-white/20 shadow-xl max-h-[calc(100vh-12rem)] overflow-y-auto">
+        <Card className="bg-transparent border-0 shadow-none max-h-[calc(100vh-12rem)] overflow-y-auto">
             <CardHeader className="sticky top-0 bg-inherit bg-opacity-80 backdrop-blur-sm z-10">
                 <CardTitle className="font-headline text-2xl flex justify-between items-center">
                     <span>
