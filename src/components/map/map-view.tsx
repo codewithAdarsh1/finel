@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerShadow from 'leaflet/dist/images/shadow.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
 // Fix for leaflet's default icon path in webpack environments
 // @ts-ignore
